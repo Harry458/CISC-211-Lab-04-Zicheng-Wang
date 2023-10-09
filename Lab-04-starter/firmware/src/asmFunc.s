@@ -66,46 +66,61 @@ asmFunc:
 .endif
     
     /*** STUDENTS: Place your code BELOW this line!!! **************/
-LDR r1,=0                ; /*Load 0 into register r1*/
-    LDR r3,=1                ; /*Load 1 into register r3*/
-    LDR r4,=balance          ; /*Load the address of the 'balance' variable into r4*/
-    LDR r5,=transaction      ; /*Load the address of the 'transaction' variable into r5*/
-    LDR r6,=eat_out          ; /*Load the address of 'eat_out' variable into r6*/
-    LDR r7,=stay_in          ; /*Load the address of 'stay_in' variable into r7*/
-    LDR r8,=eat_ice_cream    ; /*Load the address of 'eat_ice_cream' variable into r8*/
-    LDR r9,=we_have_a_problem ; /*Load the address of 'we_have_a_problem' into r9*/
-    tmpBalance: .word 0      ; /*Define a label 'tmpBalance' and allocate 4 bytes of memory*/
-    LDR r10,=tmpBalance      ; /*Load the address of 'tmpBalance' into r10*/
+    LDR r1,=balance /* Load the address of 'balance' variable into r1 */
+    LDR r4,=transaction	/* Load the address of 'transaction' variable into r4 */
+    LDR r5,=eat_out /* Load the address of 'eat_out' variable into r5 */
+    LDR r6,=stay_in /* Load the address of 'stay_in' variable into r6 */
+    LDR r7,=eat_ice_cream /* Load the address of 'eat_ice_cream' variable into r7 */
+    LDR r8,=we_have_a_problem /* Load the address of 'we_have_a_problem' variable into r8 */
+    LDR r9,=0 /*Load 0 into r9*/
+    MOV r10, #1 /*Load 1 into r10*/
+    /*SET OUTPUT VALUABLE TO r9(0)*/
+    STR r9,[r5]
+    STR r9,[r6]
+    STR r9,[r7]
+    STR r9,[r8]
+    
+    STR r0,[r4]/*Store the r4(transaction) amount from r0 to memory*/
+    LDR r2,[r1]/*Load r1(balance) value into r2*/
+    /*Check if r0(transaction) amount is within the range (-1000, 1000)*/
+    CMP r0,#1000
+    BGT outOfRange
+    CMP r0,#-1000
+    BLT outOfRange
+    
+    ADDS r3,r2,r0/*Add r0(transaction) amount to r2(balance) into r3(tempBalance) */
+    BVS outOfRange/*check for overflow*/ 
+    
+    STR r3,[r1]/*Store tempBalance value into r1(balance)*/
+    
+    /*Check (r3)tempBalance value is bigger,smaller or equal to 0*/
+    CMP r3, #0
+    BGT set_eat_out
+    BLT set_stay_in
+    
+    /*if r3 equal to zero*/
+    STR r10, [r7] /*set r7(eat_ice_cream)to be r10(1)*/
+    B finish
 
-    STR r1,[r6]              ; /*Store the value in r1 (0) in the memory location pointed to by eat_out*/
-    STR r1,[r7]              ; /*Store the value in r1 (0) in the memory location pointed to by stay_in*/
-    STR r1,[r8]              ; /*Store the value in r1 (0) in the memory location pointed to by eat_ice_cream*/
-    STR r1,[r9]              ; /*Store the value in r1 (0) in the memory location pointed to by we_have_a_problem*/
-    STR r0,[r5]              ; /*Store the value in r0 in the memory location pointed to by transaction*/
-
-    CMP r5,1000              ; /*Compare the value in transaction with 1000*/
-    BGT correct_way          ; /*Branch to 'correct_way' if 'transaction' is greater than 1000*/
-    CMP r5,-1000             ; /*Compare the value in transaction with -1000*/
-    BLT correct_way          ; /*Branch to 'correct_way' if 'transaction' is less than -1000*/
-
-    ADDS r10,r4,r5           ; /*Add the values in balance and transaction and store in tmpBalance*/
-    Bvs correct_way          ; /*Branch to 'correct_way' if there was overflow in the addition*/
-
-correct_way:
-    STR r1,[r5]              ; /*Store 0 in the memory location pointed to by transaction*/
-    STR r3,[r9]              ; /*Store 1 in the memory location pointed to by we_have_a_problem*/
-    STR r4,[r0]              ; /*Store the value in balance in the memory location pointed to by r0*/
-    B done                   ; /*Branch to 'done'*/
-
-way_one:
-    STR r3,[r6]              ; /*Store 1 in the memory location pointed to by eat_out*/
-    STR r4,[r0]              ; /*Store the value in balance in the memory location pointed to by r0
-    B done                   ; /*Branch to 'done'*/
-
-way_two:
-    STR r3,[r7]              ; /*Store 1 in the memory location pointed to by stay_in*/
-    STR r4,[r0]              ; /*Store the value in balance in the memory location pointed to by r0*/
-    B done                   ; /*Branch to 'done'*/
+    /*if r3 bigger than zero*/
+set_eat_out:
+    STR r10, [r5] /*set r5(eat_out)to be r10(1)*/            
+    B finish
+    
+    /*if r3 smaller than zero*/
+set_stay_in:
+    STR r10, [r6] /*set r6(stay_in)to be r10(1)*/        
+    B finish
+   
+    /*if r0 is out of range or overflow*/
+outOfRange:
+    MOV r3, r2 /*Restore r2(r1(balance)value) value into r3(tempBalance)*/
+    STR r9,[r4] /*set r4(transaction)to be r9(0)*/
+    STR r10,[r8] /*set r8(we_have_a_problem)to be r10(1)*/
+    B finish
+    
+finish:
+    MOV r0, r3 /*Return the tempBalance in r0*/    
     
     /*** STUDENTS: Place your code ABOVE this line!!! **************/
 
